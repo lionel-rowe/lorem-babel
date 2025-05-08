@@ -3,6 +3,7 @@ import { createConfig } from '../src/config.ts'
 import type { LoremBabelConfig } from '../src/mod.ts'
 import type { Locale } from './scrape.ts'
 import scraped from './scraped/all.json' with { type: 'json' }
+import { regExpEscape } from '@li/regexp-escape-polyfill'
 
 type ConfigFromScrapedConfig = {
 	maxVocabSize?: number
@@ -33,7 +34,7 @@ class PartiallyLowerCaseWordMatcher extends Irregex {
 		locale: Locale
 		minLength: number
 		minLengthExceptions: readonly string[]
-		exclude: readonly string[]
+		exclude: RegExp[]
 	}
 
 	constructor(
@@ -46,8 +47,12 @@ class PartiallyLowerCaseWordMatcher extends Irregex {
 			minLength: 1,
 			minLengthExceptions: [],
 			...config,
-			exclude: config.exclude?.map((x) => x.toLocaleLowerCase(config.locale)) ?? [],
+			exclude: config.exclude ?? [],
 		}
+
+		this.config.exclude.push(
+			wordsToRegExp(getLanguageAndRegionNamesForLocale(config.locale)),
+		)
 
 		this.regex = new RegExp(String.raw`^[\p{scx=${config.scriptId}}\p{M}]+$`, 'v')
 		this.trackLastIndex = [this.regex]
@@ -62,13 +67,23 @@ class PartiallyLowerCaseWordMatcher extends Irregex {
 		const [m] = result
 		if (m.toLocaleUpperCase(locale) === m) return null
 		if (m.length < minLength && !minLengthExceptions.includes(m)) return null
-		if (exclude.includes(m.toLocaleLowerCase(locale))) return null
+		if (exclude.some((re) => re.test(m))) return null
 
 		return result
 	}
 }
 
-const DEFAULT_EXCLUDES = ['Unicode', 'Windows'] as const
+function wordsToRegExp(words: string[]) {
+	return new RegExp(`^(?:${[...new Set(words.map((w) => regExpEscape(w.toLowerCase())))].join('|')})$`, 'i')
+}
+
+// deno-fmt-ignore
+const DEFAULT_EXCLUDES = wordsToRegExp(['unicode', 'windows', 'tahoma', 'arial', 'microsoft', 'unihan', 'hangul', 'adobe', 'novell', 'lotus', 'unisys', 'hebrew', 'endian', 'endianness', 'microsystems', 'separator', 'seperator', 'mozilla', 'apple', 'google', 'ibm', 'meta', 'facebook', 'netflix', 'oracle', 'plane', 'firefox', 'cyril'])
+const NON_EN_EXCLUDES = wordsToRegExp(
+	// deno-fmt-ignore
+	['gives', 'higher', 'priority', 'ensuring', 'utility', 'future', 'preserving', 'past', 'antiquities', 'aims', 'first', 'instance', 'at', 'published', 'text', 'union', 'newspapers', 'and', 'magazines', 'printed', 'world', 'whose', 'number', 'is', 'undoubtedly', 'far', 'below', 'beyond', 'those', 'others', 'may', 'defined', 'obsolete', 'or', 'rare', 'these', 'are', 'better', 'candidates', 'registration', 'congesting', 'public', 'list', 'generally', 'useful', 'times', 'new', 'roman', 'systems', 'sun', 'basic', 'little', 'least', 'points', 'big', 'most', 'other', 'reserved', 'multilingual', 'capital', 'order', 'code', 'point', 'codepoint', 'byte', 'form', 'forms', 'web', 'pair', 'map', 'shift', 'bit', 'font', 'stream', 'escape', 'display', 'delta', 'block']
+		.flatMap(x => [x, x.endsWith('s') && x.length > 2 ? x.slice(0, -1) : x + 's']),
+)
 
 export const metaConfigs = {
 	ar: {
@@ -80,7 +95,7 @@ export const metaConfigs = {
 			scriptId: 'Latn',
 			minLength: 2,
 			minLengthExceptions: [],
-			exclude: DEFAULT_EXCLUDES,
+			exclude: [DEFAULT_EXCLUDES, NON_EN_EXCLUDES],
 		}),
 	},
 	de: {
@@ -90,7 +105,7 @@ export const metaConfigs = {
 			scriptId: 'Latn',
 			minLength: 2,
 			minLengthExceptions: [],
-			exclude: DEFAULT_EXCLUDES,
+			exclude: [DEFAULT_EXCLUDES, NON_EN_EXCLUDES],
 		}),
 	},
 	el: {
@@ -99,7 +114,7 @@ export const metaConfigs = {
 			scriptId: 'Greek',
 			minLength: 2,
 			minLengthExceptions: [],
-			exclude: DEFAULT_EXCLUDES,
+			exclude: [DEFAULT_EXCLUDES, NON_EN_EXCLUDES],
 		}),
 	},
 	en: {
@@ -108,7 +123,7 @@ export const metaConfigs = {
 			scriptId: 'Latn',
 			minLength: 2,
 			minLengthExceptions: ['a'],
-			exclude: DEFAULT_EXCLUDES,
+			exclude: [DEFAULT_EXCLUDES],
 		}),
 	},
 	es: {
@@ -117,7 +132,7 @@ export const metaConfigs = {
 			scriptId: 'Latn',
 			minLength: 2,
 			minLengthExceptions: ['y', 'a', 'o', 'u', 'e'],
-			exclude: DEFAULT_EXCLUDES,
+			exclude: [DEFAULT_EXCLUDES, NON_EN_EXCLUDES],
 		}),
 	},
 	got: {
@@ -133,7 +148,7 @@ export const metaConfigs = {
 			scriptId: 'Cyrl',
 			minLength: 2,
 			minLengthExceptions: ['в', 'с', 'у'],
-			exclude: DEFAULT_EXCLUDES,
+			exclude: [DEFAULT_EXCLUDES, NON_EN_EXCLUDES],
 		}),
 	},
 	th: {
@@ -143,14 +158,14 @@ export const metaConfigs = {
 		wordMatcher: new PartiallyLowerCaseWordMatcher({
 			locale: 'tr',
 			scriptId: 'Latn',
-			exclude: DEFAULT_EXCLUDES,
+			exclude: [DEFAULT_EXCLUDES, NON_EN_EXCLUDES],
 		}),
 	},
 	vi: {
 		wordMatcher: new PartiallyLowerCaseWordMatcher({
 			locale: 'vi',
 			scriptId: 'Latn',
-			exclude: DEFAULT_EXCLUDES,
+			exclude: [DEFAULT_EXCLUDES, NON_EN_EXCLUDES, /^(?:[a-z]{8,})$/i],
 		}),
 	},
 	zh: {
@@ -198,3 +213,37 @@ export default config`,
 		}).spawn().output()
 	}),
 )
+
+function permute(...charArrs: string[][]) {
+	let out = ['']
+	for (const arr of charArrs) {
+		out = out.flatMap((x) => arr.map((y) => [x, y].join('')))
+	}
+	return out
+}
+
+function getLanguageAndRegionNamesForLocale(locale: Intl.LocalesArgument) {
+	const a = 'a'.codePointAt(0)!
+	const alphabet = Array.from({ length: 26 }, (_, i) => String.fromCodePoint(a + i))
+
+	const tryCodes2l = permute(alphabet, alphabet)
+
+	const languages = new Set<string>()
+	const languageNames = new Intl.DisplayNames(locale, { type: 'language' })
+
+	for (const locale of Intl.NumberFormat.supportedLocalesOf(tryCodes2l)) {
+		languages.add(languageNames.of(locale.split('-', 1)[0]) ?? locale)
+	}
+
+	const regions = new Set<string>()
+	const regionNames = new Intl.DisplayNames(locale, { type: 'region' })
+
+	for (const region of tryCodes2l.map((x) => x.toUpperCase())) {
+		const name = regionNames.of(region)
+		if (name !== region) {
+			regions.add(name ?? region)
+		}
+	}
+
+	return [...languages, ...regions]
+}

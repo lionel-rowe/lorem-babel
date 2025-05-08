@@ -56,7 +56,7 @@ Deno.test(LoremBabel.name, async (t) => {
 
 		assertMatch(
 			text.toString(),
-			/^Lorem ipsum dolor sit amet, consectetur adipiscing elit\.[\s\S]+/,
+			/^Lorem ipsum dolor sit amet, consectetur adipiscing elit\. [\s\S]+/,
 		)
 	})
 

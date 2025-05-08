@@ -235,7 +235,6 @@ const config: LoremBabelConfig = {
 		{ 'word': 'последовательно', 'weight': 3 },
 		{ 'word': 'выполняются', 'weight': 3 },
 		{ 'word': 'композиция', 'weight': 3 },
-		{ 'word': 'того', 'weight': 3 },
 		{ 'word': 'пишущиеся', 'weight': 3 },
 		{ 'word': 'числе', 'weight': 3 },
 		{ 'word': 'используются', 'weight': 3 },
@@ -823,6 +822,7 @@ const config: LoremBabelConfig = {
 		{ 'word': 'отдельным', 'weight': 1 },
 		{ 'word': 'сочетанием', 'weight': 1 },
 		{ 'word': 'комбинированного', 'weight': 1 },
+		{ 'word': 'сравнение', 'weight': 1 },
 	],
 }
 
