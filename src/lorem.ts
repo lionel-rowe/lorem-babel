@@ -79,7 +79,7 @@ class TextContents extends Array {
 		}
 	}
 
-	toString(): string {
+	override toString(): string {
 		return [...this.paragraphs()].join('\n\n')
 	}
 }

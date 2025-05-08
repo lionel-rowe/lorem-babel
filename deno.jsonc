@@ -31,6 +31,8 @@
 		"@std/assert": "jsr:@std/assert@^0.225.1",
 		"@std/jsonc": "jsr:@std/jsonc@^1.0.1",
 		"@std/path": "jsr:@std/path@^1.0.3",
+		// "@std/random": "jsr:@std/random@^0.1.0",
+		"@std/random": "https://raw.githubusercontent.com/lionel-rowe/std/065fada46d5cf2cba16a94d2545687f9ddda7f05/random/mod.ts",
 		"cheerio": "https://esm.sh/v131/cheerio@1.0.0-rc.12",
 		"irregex/": "https://exports.deno.dev/s/https://raw.githubusercontent.com/lionel-rowe/irregex/ea91b391ba95d270e97fd74a087fb5efe3dee8bd/",
 		"lorem-babel/": "./src/"

@@ -85,13 +85,6 @@ export function createConfig(
 		let cursor = 0
 		let prevIsWordLike = false
 
-		const update = (wordSegment: Intl.SegmentData) => ({
-			[Symbol.dispose]() {
-				cursor += wordSegment.segment.length
-				prevIsWordLike = Boolean(wordSegment.isWordLike)
-			},
-		})
-
 		// merge consecutive non-word-like segments
 		const _wordSegments = [...wordSegmenter.segment(sentence)]
 		const wordSegments: Intl.SegmentData[] = []
@@ -109,7 +102,11 @@ export function createConfig(
 		}
 
 		for (const [i, wordSegment] of wordSegments.entries()) {
-			using _ = update(wordSegment)
+			using stack = new DisposableStack()
+			stack.defer(() => {
+				cursor += wordSegment.segment.length
+				prevIsWordLike = Boolean(wordSegment.isWordLike)
+			})
 
 			if (wordSegment.isWordLike) {
 				if (prevIsWordLike && wordSegment.index === cursor) {

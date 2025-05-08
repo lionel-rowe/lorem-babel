@@ -1,5 +1,6 @@
 import { LoremBabel, type LoremBabelConfig } from './mod.ts'
 import { assert, assertArrayIncludes, assertEquals, assertMatch, assertThrows } from '@std/assert'
+import { byteGeneratorSeeded, nextFloat64 } from '@std/random'
 import snapshot from './fixtures/snapshot.json' with { type: 'json' }
 import { type Locale, locales } from '../scripts/scrape.ts'
 
@@ -13,23 +14,14 @@ const configs = Object.fromEntries(
 	})),
 ) as Record<Locale | 'lorem', LoremBabelConfig>
 
+// random seed generated with crypto.getRandomValues(new BigUint64Array(1))[0]
+const SEED = 2115880546258684834n
+
 // prng to ensure deterministic results during testing
-function prng(seed: number) {
-	const randUint32 = prngMulberry32(seed)
-	return () => randUint32() / 0x100000000
+function prng(seed: bigint) {
+	const byteGenerator = byteGeneratorSeeded(seed)
+	return () => nextFloat64(byteGenerator)
 }
-
-function prngMulberry32(seed: number) {
-	return function () {
-		let t = (seed += 0x6d2b79f5)
-		t = Math.imul(t ^ (t >>> 15), t | 1)
-		t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
-		return ((t ^ (t >>> 14)) >>> 0)
-	}
-}
-
-// random seed generated with crypto.getRandomValues(new Uint32Array(1))[0]
-const SEED = 4227182319
 
 const UPDATE_SNAPSHOT = Boolean(Deno.env.get('UPDATE_SNAPSHOT'))
 
@@ -48,7 +40,6 @@ Deno.test(LoremBabel.name, async (t) => {
 			locale: 'en',
 			vocabulary: [{ word: 'word', weight: 1 }],
 		})
-		// @ts-expect-error https://github.com/tc39/proposal-iterator-helpers types not in TypeScript yet
 		const words: string[] = lorem.words().take(5).toArray()
 		assertEquals(words, ['word', 'word', 'word', 'word', 'word'])
 	})
