@@ -1,23 +1,7 @@
 import { load } from 'cheerio'
 import { AnchorMe } from 'irregex/matchers/anchorme.ts'
+import { type Locale, locales } from '../src/types.ts'
 
-export const locales = [
-	'ar',
-	'cs',
-	'de',
-	'en',
-	'el',
-	'es',
-	'got',
-	'ja',
-	'lorem',
-	'ru',
-	'th',
-	'tr',
-	'vi',
-	'zh',
-] as const
-export type Locale = typeof locales[number]
 type ScrapeConfig = {
 	url: string | URL
 	parentSelector: string
@@ -76,6 +60,7 @@ const scrapeConfigs: Record<Locale, ScrapeConfig> = {
 	tr: wikiConfig('tr'),
 	vi: wikiConfig('vi'),
 	zh: wikiConfig('zh'),
+	ko: wikiConfig('ko'),
 }
 
 if (import.meta.main) {

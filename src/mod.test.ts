@@ -2,7 +2,7 @@ import { LoremBabel, type LoremBabelConfig } from './mod.ts'
 import { assert, assertArrayIncludes, assertEquals, assertMatch, assertThrows } from '@std/assert'
 import { byteGeneratorSeeded, nextFloat64 } from '@std/random'
 import snapshot from './fixtures/snapshot.json' with { type: 'json' }
-import { type Locale, locales } from '../scripts/scrape.ts'
+import { type Locale, locales } from './types.ts'
 
 const configs = Object.fromEntries(
 	await Promise.all(['lorem', ...locales].map(async (locale) => {

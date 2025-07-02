@@ -47,11 +47,11 @@ type GenerateOptions = {
 	paragraphsPerText: number | LengthBoundaries
 }
 
-const defaultGenerateOptions = {
+export const defaultGenerateOptions: GenerateOptions = {
 	wordsPerSentence: { min: 8 as const, max: 25 as const },
 	sentencesPerParagraph: { min: 3 as const, max: 5 as const },
 	paragraphsPerText: { min: 3 as const, max: 5 as const },
-} satisfies GenerateOptions
+}
 
 class TextContents extends Array {
 	#sentenceSeparator!: string

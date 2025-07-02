@@ -1,7 +1,7 @@
 import { Irregex, type Matcher } from '@li/irregex'
 import { createConfig } from '../src/config.ts'
 import type { LoremBabelConfig } from '../src/mod.ts'
-import type { Locale } from './scrape.ts'
+import type { Locale } from '../src/types.ts'
 import scraped from './scraped/all.json' with { type: 'json' }
 import { regExpEscape } from '@li/regexp-escape-polyfill'
 
@@ -77,8 +77,10 @@ function wordsToRegExp(words: string[]) {
 	return new RegExp(`^(?:${[...new Set(words.map((w) => regExpEscape(w.toLowerCase())))].join('|')})$`, 'i')
 }
 
-// deno-fmt-ignore
-const DEFAULT_EXCLUDES = wordsToRegExp(['unicode', 'windows', 'tahoma', 'arial', 'microsoft', 'unihan', 'hangul', 'adobe', 'novell', 'lotus', 'unisys', 'hebrew', 'endian', 'endianness', 'microsystems', 'separator', 'seperator', 'mozilla', 'apple', 'google', 'ibm', 'meta', 'facebook', 'netflix', 'oracle', 'plane', 'firefox', 'cyril'])
+const DEFAULT_EXCLUDES = wordsToRegExp(
+	// deno-fmt-ignore
+	['unicode', 'windows', 'tahoma', 'arial', 'microsoft', 'unihan', 'hangul', 'adobe', 'novell', 'lotus', 'unisys', 'hebrew', 'endian', 'endianness', 'microsystems', 'separator', 'seperator', 'mozilla', 'apple', 'google', 'ibm', 'meta', 'facebook', 'netflix', 'oracle', 'plane', 'firefox', 'cyril'],
+)
 const NON_EN_EXCLUDES = wordsToRegExp(
 	// deno-fmt-ignore
 	['gives', 'higher', 'priority', 'ensuring', 'utility', 'future', 'preserving', 'past', 'antiquities', 'aims', 'first', 'instance', 'at', 'published', 'text', 'union', 'newspapers', 'and', 'magazines', 'printed', 'world', 'whose', 'number', 'is', 'undoubtedly', 'far', 'below', 'beyond', 'those', 'others', 'may', 'defined', 'obsolete', 'or', 'rare', 'these', 'are', 'better', 'candidates', 'registration', 'congesting', 'public', 'list', 'generally', 'useful', 'times', 'new', 'roman', 'systems', 'sun', 'basic', 'little', 'least', 'points', 'big', 'most', 'other', 'reserved', 'multilingual', 'capital', 'order', 'code', 'point', 'codepoint', 'byte', 'form', 'forms', 'web', 'pair', 'map', 'shift', 'bit', 'font', 'stream', 'escape', 'display', 'delta', 'block']
@@ -170,6 +172,9 @@ export const metaConfigs = {
 	},
 	zh: {
 		wordMatcher: /^\p{scx=Han}+$/u,
+	},
+	ko: {
+		wordMatcher: /^\p{scx=Hangul}+$/u,
 	},
 } satisfies Record<
 	Locale,
