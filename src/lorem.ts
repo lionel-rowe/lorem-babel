@@ -7,6 +7,7 @@ function getLengthBoundaries(boundaries: number | LengthBoundaries): LengthBound
 	return typeof boundaries === 'number' ? { min: boundaries, max: boundaries } : boundaries
 }
 
+/** Config for {@linkcode LoremBabel} */
 export type LoremBabelConfig = {
 	/** The locale of the text to generate */
 	locale: string
@@ -38,6 +39,7 @@ type GenerateOptions = {
 	paragraphs: number | LengthBoundaries
 }
 
+/** Default text generation options */
 export const defaultGenerateOptions: GenerateOptions = {
 	sentences: { min: 3 as const, max: 5 as const },
 	paragraphs: { min: 3 as const, max: 5 as const },
