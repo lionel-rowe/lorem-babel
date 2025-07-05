@@ -6,9 +6,9 @@ Generate nonsense placeholder text in a variety of languages.
 
 ```ts
 import { LoremBabel } from '@li/lorem-babel'
-import vi from '@li/lorem-babel/locales/vi'
+import config from '@li/lorem-babel/locales/vi' with { type: 'json' }
 
-const lorem = new LoremBabel(vi)
+const lorem = new LoremBabel(config)
 const result = lorem.text()
 
 console.info(result.toString())
