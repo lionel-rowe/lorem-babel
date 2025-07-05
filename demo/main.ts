@@ -1,7 +1,8 @@
-import { defaultGenerateOptions, LoremBabel } from '../src/mod.ts'
+import { defaultGenerateOptions } from '../src/mod.ts'
 import { locales } from '../src/locales.ts'
 
-function fmtRange({ min, max }: { min: number; max: number }) {
+function fmtRange(range: number | { min: number; max: number }) {
+	const { min, max } = typeof range === 'number' ? { min: range, max: range } : range
 	return `${min}-${max}`
 }
 
@@ -30,25 +31,28 @@ Deno.serve(async (req) => {
 	}
 
 	const params = url.searchParams
-	const locale = params.get('locale') ?? 'en'
-	const words = params.get('words') ?? fmtRange(defaultGenerateOptions.wordsPerSentence)
-	const sentences = params.get('sentences') ?? fmtRange(defaultGenerateOptions.sentencesPerParagraph)
-	const paragraphs = params.get('paragraphs') ?? fmtRange(defaultGenerateOptions.paragraphsPerText)
 
-	const localeConfig = Object.hasOwn(locales, locale)
-		? (await locales[locale as keyof typeof locales]()).default
-		: null
-	if (!localeConfig) {
-		return new Response(`Locale "${locale}" not found`, { status: 404 })
+	const locale = params.get('locale') ?? 'en'
+
+	// const words = params.get('words') ?? fmtRange(defaultGenerateOptions.wordsPerSentence)
+	const sentences = params.get('sentences') ?? fmtRange(defaultGenerateOptions.sentences)
+	const paragraphs = params.get('paragraphs') ?? fmtRange(defaultGenerateOptions.paragraphs)
+
+	const lorem = Object.hasOwn(locales, locale) ? (await locales[locale as keyof typeof locales]()) : null
+	if (!lorem) {
+		return new Response(
+			`Locale "${locale}" not found. Available locales: ${Object.keys(locales).map((x) => `"${x}"`).join(', ')}`,
+			{ status: 404 },
+		)
 	}
 
 	const generateConfig = {
-		wordsPerSentence: parseRange(words),
-		sentencesPerParagraph: parseRange(sentences),
-		paragraphsPerText: parseRange(paragraphs),
+		// wordsPerSentence: parseRange(words),
+		sentences: parseRange(sentences),
+		paragraphs: parseRange(paragraphs),
 	}
 
-	const lorem = new LoremBabel(localeConfig)
+	// const lorem = new LoremBabel(lorem)
 	const text = lorem.text(generateConfig)
 
 	// plaintext response

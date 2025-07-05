@@ -1,20 +1,54 @@
-import type { LoremBabelConfig } from './lorem.ts'
-import type { Locale } from './types.ts'
+import { LoremBabel } from './lorem.ts'
 
-export const locales: Record<Locale, () => Promise<{ default: LoremBabelConfig }>> = {
-	'ar': () => import('./configs/ar.ts'),
-	'cs': () => import('./configs/cs.ts'),
-	'de': () => import('./configs/de.ts'),
-	'el': () => import('./configs/el.ts'),
-	'en': () => import('./configs/en.ts'),
-	'es': () => import('./configs/es.ts'),
-	'got': () => import('./configs/got.ts'),
-	'ja': () => import('./configs/ja.ts'),
-	'ko': () => import('./configs/ko.ts'),
-	'lorem': () => import('./configs/lorem.ts'),
-	'ru': () => import('./configs/ru.ts'),
-	'th': () => import('./configs/th.ts'),
-	'tr': () => import('./configs/tr.ts'),
-	'vi': () => import('./configs/vi.ts'),
-	'zh': () => import('./configs/zh.ts'),
-} satisfies Record<string, () => Promise<{ default: LoremBabelConfig }>>
+/** All available locales */
+export type Locale = keyof typeof configs
+
+const configs = {
+	'ar': () => import('./locales/ar.json', { with: { type: 'json' } }),
+	'bg': () => import('./locales/bg.json', { with: { type: 'json' } }),
+	'cs': () => import('./locales/cs.json', { with: { type: 'json' } }),
+	'da': () => import('./locales/da.json', { with: { type: 'json' } }),
+	'de': () => import('./locales/de.json', { with: { type: 'json' } }),
+	'el': () => import('./locales/el.json', { with: { type: 'json' } }),
+	'en-GB': () => import('./locales/en-GB.json', { with: { type: 'json' } }),
+	'en': () => import('./locales/en.json', { with: { type: 'json' } }),
+	'es-419': () => import('./locales/es-419.json', { with: { type: 'json' } }),
+	'es': () => import('./locales/es.json', { with: { type: 'json' } }),
+	'et': () => import('./locales/et.json', { with: { type: 'json' } }),
+	'fi': () => import('./locales/fi.json', { with: { type: 'json' } }),
+	'fr': () => import('./locales/fr.json', { with: { type: 'json' } }),
+	'got': () => import('./locales/got.json', { with: { type: 'json' } }),
+	'he': () => import('./locales/he.json', { with: { type: 'json' } }),
+	'hu': () => import('./locales/hu.json', { with: { type: 'json' } }),
+	'id': () => import('./locales/id.json', { with: { type: 'json' } }),
+	'it': () => import('./locales/it.json', { with: { type: 'json' } }),
+	'ja': () => import('./locales/ja.json', { with: { type: 'json' } }),
+	'ko': () => import('./locales/ko.json', { with: { type: 'json' } }),
+	'lorem': () => import('./locales/lorem.json', { with: { type: 'json' } }),
+	'lv': () => import('./locales/lv.json', { with: { type: 'json' } }),
+	'nb': () => import('./locales/nb.json', { with: { type: 'json' } }),
+	'nl': () => import('./locales/nl.json', { with: { type: 'json' } }),
+	'osa': () => import('./locales/osa.json', { with: { type: 'json' } }),
+	'pl': () => import('./locales/pl.json', { with: { type: 'json' } }),
+	'pt-PT': () => import('./locales/pt-PT.json', { with: { type: 'json' } }),
+	'pt': () => import('./locales/pt.json', { with: { type: 'json' } }),
+	'ro': () => import('./locales/ro.json', { with: { type: 'json' } }),
+	'ru': () => import('./locales/ru.json', { with: { type: 'json' } }),
+	'sk': () => import('./locales/sk.json', { with: { type: 'json' } }),
+	'sl': () => import('./locales/sl.json', { with: { type: 'json' } }),
+	'sv': () => import('./locales/sv.json', { with: { type: 'json' } }),
+	'th': () => import('./locales/th.json', { with: { type: 'json' } }),
+	'tr': () => import('./locales/tr.json', { with: { type: 'json' } }),
+	'uk': () => import('./locales/uk.json', { with: { type: 'json' } }),
+	'vi': () => import('./locales/vi.json', { with: { type: 'json' } }),
+	'zh-TW': () => import('./locales/zh-TW.json', { with: { type: 'json' } }),
+	'zh': () => import('./locales/zh.json', { with: { type: 'json' } }),
+}
+
+/** A map of locale codes to functions that lazily import a `LoremBabel` instance for that locale. */
+export const locales = Object.fromEntries(
+	Object.entries(configs).map(([k, v]) => {
+		const getLorem = async () => new LoremBabel((await v()).default)
+		return [k, getLorem]
+	}),
+) as Record<Locale, () => Promise<LoremBabel>>
