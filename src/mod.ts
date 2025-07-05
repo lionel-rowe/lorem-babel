@@ -4,3 +4,4 @@
  */
 
 export * from './lorem.ts'
+export * from './locales.ts'

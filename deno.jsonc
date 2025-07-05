@@ -49,9 +49,7 @@
 		"start": "deno run -A ./demo/main.ts",
 		"test": "deno test -A src",
 		"test:update-snapshot": "UPDATE_SNAPSHOT=1 deno test -A --no-check src",
-		"build": "deno run -A scripts/buildDefaultConfigs.ts && deno run -A scripts/updateExports.ts",
-		"scrape": "deno run -A scripts/scrape.ts",
-		"scrape-all": "OVERWRITE_LOCALES='*' deno run -A scripts/scrape.ts"
+		"build": "deno run -A scripts/updateExports.ts"
 	},
 	"imports": {
 		"@li/http-saver": "jsr:@li/http-saver@^0.5.0",
