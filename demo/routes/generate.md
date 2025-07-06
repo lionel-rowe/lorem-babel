@@ -64,6 +64,6 @@
 	</script>
 </form>
 
-<div class="lorem-text">
+<div class="lorem-text" dir={{dir}}>
 {{{loremHtml}}}
 </div>

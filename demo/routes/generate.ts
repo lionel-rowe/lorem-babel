@@ -9,6 +9,7 @@ import { escape } from '@std/html/entities'
 import { defaultGenerateOptions, type GenerateOptions } from '~/lorem.ts'
 import { listFmt } from '../config.ts'
 import type { TextContents } from '~/textContents.ts'
+import '../polyfills.ts'
 
 const defaultFormOptions: GenerateOptions = {
 	...defaultGenerateOptions,
@@ -93,6 +94,7 @@ function jsonOrHtml(fn: (req: Request) => Response | Promise<Response>) {
 					form,
 					loremHtml,
 					formDefaults: JSON.stringify(formDefaults),
+					dir: new Intl.Locale(form.locale).getTextInfo().direction,
 				})
 
 				const main = await marked.parse(content)
