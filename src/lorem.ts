@@ -1,11 +1,15 @@
+import { assert } from '@std/assert/assert'
 import { unreachable } from '@std/assert/unreachable'
-import { randomIntegerBetween, sample } from '@std/random'
+import { sample } from '@std/random/sample'
+import { randomIntegerBetween } from '@std/random/integer-between'
 import { FakeSentenceSegmenter } from './fakeSentenceSegmenter.ts'
-import { TextContents } from './textContents.ts'
+import { Heading, Paragraph, TextContents } from './textContents.ts'
+import { toTitleCase } from '@std/text/unstable-to-title-case'
 
-function getLengthBoundaries(boundaries: number | LengthBoundaries): LengthBoundaries {
-	return typeof boundaries === 'number' ? { min: boundaries, max: boundaries } : boundaries
-}
+// perf: only attempt to segment sentences every N tokens
+const CHECK_EVERY_N_TOKENS = 100
+// perf: only attempt to generate a sentence with target length 10 times
+const MAX_ATTEMPTS = 10
 
 /** Config for {@linkcode LoremBabel} */
 export type LoremBabelConfig = {
@@ -30,20 +34,58 @@ type LengthBoundaries = {
 	max: number
 }
 
+function getLengthBoundaries(boundaries: number | LengthBoundaries): LengthBoundaries {
+	const out = typeof boundaries === 'number' ? { min: boundaries, max: boundaries } : boundaries
+
+	for (const k of ['min', 'max'] as const) {
+		assert(Number.isInteger(out[k]), `boundaries.${k} must be an integer`)
+		out[k] ||= 0
+		assert(Math.sign(out[k]) === 1, `boundaries.${k} must be positive`)
+		assert(out.min <= out.max, `boundaries.min must be less than or equal to boundaries.max`)
+	}
+
+	return out
+}
+
 type GenerateOptions = {
-	// /** Words per sentence */
-	// words: number | LengthBoundaries
-	/** Sentences per paragraph */
+	/**
+	 * Sentences per paragraph.
+	 * @default {{ min: 3, max: 5 }}
+	 */
 	sentences: number | LengthBoundaries
-	/** Paragraphs per text */
+	/**
+	 * Total number of paragraphs to output.
+	 * @default {{ min: 3, max: 5 }}
+	 */
 	paragraphs: number | LengthBoundaries
+	/**
+	 * Density of headings in the text, as a fraction of the number of paragraphs.
+	 * A value of 0 means no headings, a value of 1 means one heading per paragraph.
+	 * @default {0}
+	 */
+	headingDensity: number
+	/**
+	 * Target number of words per sentence.
+	 * If null, no target is applied, and sentence length is determined by the input text.
+	 * @default {null}
+	 */
+	targetWordsPerSentence: number | LengthBoundaries | null
+	/**
+	 * Target number of words per heading. This has no effect if `headingDensity` is 0.
+	 * If null, no target is applied, and heading length is determined by the input text.
+	 * @default {8}
+	 */
+	targetWordsPerHeading: number | LengthBoundaries | null
 }
 
 /** Default text generation options */
-export const defaultGenerateOptions: GenerateOptions = {
-	sentences: { min: 3 as const, max: 5 as const },
-	paragraphs: { min: 3 as const, max: 5 as const },
-}
+export const defaultGenerateOptions = {
+	sentences: { min: 3, max: 5 },
+	paragraphs: { min: 3, max: 5 },
+	headingDensity: 0,
+	targetWordsPerSentence: null,
+	targetWordsPerHeading: 8,
+} as const satisfies GenerateOptions
 
 /**
  * Generate paragraphs, sentences, and individual words of text in a variety of languages.
@@ -65,12 +107,12 @@ export const defaultGenerateOptions: GenerateOptions = {
  */
 export class LoremBabel {
 	random = Math.random
-	delimiter: string
+	readonly #delimiter: string
 
-	locale: string
+	readonly locale: string
 
-	rules: Record<string, [string, ...string[]]>
-	segmenters: {
+	readonly rules: Readonly<Record<string, readonly [string, ...string[]]>>
+	readonly #segmenters: {
 		sentence: Intl.Segmenter
 		word: Intl.Segmenter
 	}
@@ -81,38 +123,42 @@ export class LoremBabel {
 		if (!original.trim()) throw new RangeError('Input must not be empty')
 
 		locale = new Intl.Locale(locale).minimize().toString()
-		this.delimiter = '\0'
+		this.#delimiter = '\0'
 
-		while (original.includes(this.delimiter)) {
-			this.delimiter = String.fromCodePoint(
-				this.delimiter.codePointAt(0)! + 1,
+		while (original.includes(this.#delimiter)) {
+			this.#delimiter = String.fromCodePoint(
+				this.#delimiter.codePointAt(0)! + 1,
 			)
 		}
 
 		const input = this.#prepareInput(original, locale)
 
+		this.rules = this.#buildRules({ input, contextSize })
+
+		this.locale = locale
+		this.#segmenters = {
+			sentence: sentenceBreak
+				? new FakeSentenceSegmenter(80, new RegExp(sentenceBreak, 'dgv'))
+				: new Intl.Segmenter(this.locale, { granularity: 'sentence' }),
+			word: new Intl.Segmenter(this.locale, { granularity: 'word' }),
+		}
+	}
+
+	#buildRules({ input, contextSize }: { input: string; contextSize: number }) {
 		const rules: Record<string, [string, ...string[]]> = {}
-		const tokens = input.split(this.delimiter)
+		const tokens = input.split(this.#delimiter)
 
 		// "wrap around" to ensure tokens can keep generating indefinitely
 		tokens.push(...tokens.slice(0, contextSize))
 
 		for (let i = contextSize; i < tokens.length; ++i) {
 			const token = tokens[i]
-			const key = tokens.slice(i - contextSize, i).join(this.delimiter)
+			const key = tokens.slice(i - contextSize, i).join(this.#delimiter)
 			if (Object.hasOwn(rules, key)) rules[key].push(token)
 			else rules[key] = [token]
 		}
 
-		this.rules = rules
-
-		this.locale = locale
-		this.segmenters = {
-			sentence: sentenceBreak
-				? new FakeSentenceSegmenter(80, new RegExp(sentenceBreak, 'dgv'))
-				: new Intl.Segmenter(this.locale, { granularity: 'sentence' }),
-			word: new Intl.Segmenter(this.locale, { granularity: 'word' }),
-		}
+		return rules
 	}
 
 	#inputToScalar(input: string | string[]): string {
@@ -128,7 +174,7 @@ export class LoremBabel {
 		let out = ''
 
 		for (const x of new Intl.Segmenter(locale, { granularity: 'word' }).segment(s)) {
-			out += x.segment + this.delimiter
+			out += x.segment + this.#delimiter
 		}
 
 		return out
@@ -158,28 +204,83 @@ export class LoremBabel {
 	 */
 	text(options?: Partial<GenerateOptions>): TextContents {
 		const opts = { ...defaultGenerateOptions, ...options }
+		// const { paragraphs, headingDensity } = opts
+		let headingDensity = opts.headingDensity
+		assert(Number.isFinite(headingDensity), 'headingDensity must be a finite number')
+		headingDensity ||= 0
+		assert(headingDensity >= 0 && headingDensity <= 1, 'headingDensity must be between 0 and 1')
 
 		const { min, max } = getLengthBoundaries(opts.paragraphs)
-
 		const length = randomIntegerBetween(min, max, { prng: this.random })
 
-		return TextContents.fromParts(
-			Array.from({ length }, () => {
-				const { min, max } = getLengthBoundaries(opts.sentences)
-				const length = randomIntegerBetween(min, max, { prng: this.random })
-				return this.#sentences().take(length).toArray().map((x, i, a) => i === a.length - 1 ? x.trimEnd() : x)
-			}),
-			'',
-		)
+		const text = new TextContents()
+
+		for (let i = 0; i < length; ++i) {
+			const addHeading = [0, 1].includes(headingDensity)
+				? Boolean(headingDensity)
+				: (this.random() < headingDensity)
+			if (addHeading) text.push(Heading.from([this.heading(opts.targetWordsPerHeading)]))
+
+			const { min, max } = getLengthBoundaries(opts.sentences)
+			const length = randomIntegerBetween(min, max, { prng: this.random })
+			const sentences = opts.targetWordsPerSentence == null
+				? this.#sentences().take(length)
+				: Array.from({ length }, () => this.sentence(opts.targetWordsPerSentence))
+
+			text.push(Paragraph.from(sentences, (x, i) => i === length - 1 ? x.trimEnd() : x))
+		}
+
+		return text
+	}
+
+	/** Generates a heading, aiming for the specified target number of words */
+	heading(targetWords?: number | LengthBoundaries | null): string {
+		return toTitleCase(this.sentence(targetWords)).trimEnd().replace(/^\p{P}+|\p{P}+$/gu, '')
+	}
+
+	/** Generates a sentence, aiming for the specified target number of words */
+	sentence(targetWords?: number | LengthBoundaries | null): string {
+		if (targetWords == null) {
+			for (const x of this.#sentences()) return x
+			unreachable()
+		}
+
+		const boundaries = getLengthBoundaries(targetWords)
+		const targetMin = boundaries.min
+		const targetMax = boundaries.max
+		const targetDistance = (boundaries.max - boundaries.min) / 2
+		const iter = this.#sentences()
+
+		let bestAttempt = { text: '', distance: Infinity }
+
+		for (let i = 0; i < MAX_ATTEMPTS; ++i) {
+			const text = iter.next().value
+
+			const count = this.#countWords(text)
+
+			if (count >= targetMin && count <= targetMax) return text
+
+			const distance = 0 - (Math.min(targetMin - count, count - targetMax))
+
+			const attempt = { text, distance }
+			if (attempt.distance < targetDistance) return attempt.text
+			if (attempt.distance < bestAttempt.distance) bestAttempt = attempt
+		}
+
+		return bestAttempt.text
+	}
+
+	#countWords(str: string): number {
+		return [...this.#segmenters.word.segment(str)].filter((x) => x.isWordLike).length
 	}
 
 	/** Generates a Markov chain token-by-token. */
 	*#tokens() {
-		const tokens = sample(Object.keys(this.rules), { prng: this.random })!.split(this.delimiter)
+		const tokens = sample(Object.keys(this.rules), { prng: this.random })!.split(this.#delimiter)
 		yield* tokens
 
 		while (true) {
-			const key = tokens.join(this.delimiter)
+			const key = tokens.join(this.#delimiter)
 
 			// If rules doesn't have `key` prop then EoF (this can never happen if `wrap=true`)
 			if (!Object.hasOwn(this.rules, key)) return
@@ -194,23 +295,20 @@ export class LoremBabel {
 	}
 
 	*#sentences(): Generator<string, never, undefined> {
-		for (const s of this.#withSegmenter(this.segmenters.sentence)) {
+		for (const s of this.#withSegmenter(this.#segmenters.sentence)) {
 			yield s.segment
 		}
 		unreachable()
 	}
 
 	*words(): Generator<string, never, undefined> {
-		for (const s of this.#withSegmenter(this.segmenters.word)) {
+		for (const s of this.#withSegmenter(this.#segmenters.word)) {
 			if (s.isWordLike) yield s.segment
 		}
 		unreachable()
 	}
 
 	*#withSegmenter(segmenter: Intl.Segmenter): Generator<Intl.SegmentData, never, undefined> {
-		// perf: only attempt to segment sentences every N tokens
-		const CHECK_EVERY_N_TOKENS = 100
-
 		let i = 0
 		let buf = ''
 

@@ -1,6 +1,7 @@
 import { LoremBabel } from './mod.ts'
-import { assertEquals, assertMatch, assertThrows } from '@std/assert'
+import { assertEquals, assertInstanceOf, assertMatch, assertThrows } from '@std/assert'
 import { locales } from './locales.ts'
+import { Paragraph, TextContents } from './textContents.ts'
 
 Deno.test(LoremBabel.name, async (t) => {
 	await t.step('throws if input is empty', () => {
@@ -30,6 +31,8 @@ Deno.test(LoremBabel.name, async (t) => {
 			sentences: { min: 3, max: 3 },
 		})
 
+		// @ts-expect-error Type 'number' is not assignable to type 'string'.
+		text[0][0] = 1
 		text[0][0] = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. '
 
 		assertMatch(
@@ -38,22 +41,20 @@ Deno.test(LoremBabel.name, async (t) => {
 		)
 	})
 
-	await t.step(
-		'with default config, `toString` converts to newline-delimited paragraphs and `sentenceSeparator`-delimited sentences',
-		() => {
-			const lorem = new LoremBabel({
-				locale: 'en',
-				input: 'Word. ',
-				contextSize: 2,
-			})
+	await t.step('`text()` returns `TextContents` containing `Paragraph`s', () => {
+		const lorem = new LoremBabel({
+			locale: 'en',
+			input: 'Word. ',
+			contextSize: 2,
+		})
+		const text = lorem.text({
+			paragraphs: 1,
+			sentences: 1,
+		})
 
-			assertEquals(
-				lorem.text({
-					paragraphs: 2,
-					sentences: 2,
-				}).toString(),
-				`Word. Word.\n\nWord. Word.`,
-			)
-		},
-	)
+		assertInstanceOf(text, TextContents)
+		assertEquals(text.length, 1)
+		assertInstanceOf(text[0], Paragraph)
+		assertEquals(text[0].length, 1)
+	})
 })

@@ -1,12 +1,16 @@
 import { defaultGenerateOptions } from '../src/mod.ts'
 import { locales } from '../src/locales.ts'
 
-function fmtRange(range: number | { min: number; max: number }) {
+function fmtRange(range: number | { min: number; max: number } | null) {
+	if (range == null) return null
+
 	const { min, max } = typeof range === 'number' ? { min: range, max: range } : range
 	return `${min}-${max}`
 }
 
-function parseRange(range: string) {
+function parseRange(range: string | null) {
+	if (range == null) return null
+
 	const x = range.split('-').map(Number)
 	if (x.length > 2 || x.length < 1) {
 		throw new Error(`Invalid range format: ${range}`)
@@ -37,6 +41,9 @@ Deno.serve(async (req) => {
 	// const words = params.get('words') ?? fmtRange(defaultGenerateOptions.wordsPerSentence)
 	const sentences = params.get('sentences') ?? fmtRange(defaultGenerateOptions.sentences)
 	const paragraphs = params.get('paragraphs') ?? fmtRange(defaultGenerateOptions.paragraphs)
+	const headingDensity = Number(params.get('headings') ?? defaultGenerateOptions.headingDensity)
+	const targetWordsPerSentence = params.get('per-sentence') ?? fmtRange(defaultGenerateOptions.targetWordsPerSentence)
+	const targetWordsPerHeading = params.get('per-heading') ?? fmtRange(defaultGenerateOptions.targetWordsPerHeading)
 
 	const lorem = Object.hasOwn(locales, locale) ? (await locales[locale as keyof typeof locales]()) : null
 	if (!lorem) {
@@ -47,9 +54,11 @@ Deno.serve(async (req) => {
 	}
 
 	const generateConfig = {
-		// wordsPerSentence: parseRange(words),
-		sentences: parseRange(sentences),
-		paragraphs: parseRange(paragraphs),
+		sentences: parseRange(sentences)!,
+		paragraphs: parseRange(paragraphs)!,
+		headingDensity,
+		targetWordsPerSentence: parseRange(targetWordsPerSentence),
+		targetWordsPerHeading: parseRange(targetWordsPerHeading),
 	}
 
 	// const lorem = new LoremBabel(lorem)

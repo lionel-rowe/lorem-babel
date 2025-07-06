@@ -9,7 +9,7 @@ for (const [locale, getLorem] of Object.entries(locales)) {
 		group: 'generate',
 		name: `generate ${locale}`,
 		fn() {
-			lorem.text({ sentences: 10, paragraphs: 10 })
+			lorem.text({ sentences: 5, paragraphs: 5, headingDensity: 0.5 })
 		},
 	})
 }

@@ -1,7 +1,7 @@
 {
 	"lock": false,
 	"name": "@li/lorem-babel",
-	"version": "0.3.2",
+	"version": "0.3.3",
 	"exports": {
 		".": "./src/mod.ts",
 		"./locales": "./src/locales.ts",
@@ -46,7 +46,7 @@
 		"./locales/zh-TW": "./src/locales/zh-TW.json"
 	},
 	"tasks": {
-		"start": "deno run -A ./demo/main.ts",
+		"start": "deno run -A --watch ./demo/main.ts",
 		"test": "deno test -A src",
 		"test:update-snapshot": "UPDATE_SNAPSHOT=1 deno test -A --no-check src",
 		"build": "deno run -A scripts/updateExports.ts"
@@ -58,6 +58,7 @@
 		"@std/jsonc": "jsr:@std/jsonc@^1.0.1",
 		"@std/path": "jsr:@std/path@^1.0.3",
 		"@std/random": "jsr:@std/random@^0.1.2",
+		"@std/text": "jsr:@std/text@^1.0.15",
 		"lorem-babel/": "./src/"
 	},
 	"fmt": {
