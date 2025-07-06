@@ -79,13 +79,13 @@ export type GenerateOptions = {
 }
 
 /** Default text generation options */
-export const defaultGenerateOptions = {
+export const defaultGenerateOptions: GenerateOptions = {
 	sentences: { min: 3, max: 5 },
 	paragraphs: { min: 3, max: 5 },
 	headingDensity: 0,
 	targetWordsPerSentence: null,
 	targetWordsPerHeading: 8,
-} as const satisfies GenerateOptions
+}
 
 /**
  * Generate paragraphs, sentences, and individual words of text in a variety of languages.
