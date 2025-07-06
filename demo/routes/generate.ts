@@ -7,7 +7,7 @@ import { err } from './err.ts'
 import { type Locale, locales } from '~/locales.ts'
 import { escape } from '@std/html/entities'
 import { defaultGenerateOptions, type GenerateOptions } from '~/lorem.ts'
-import { listFmt } from '../config.ts'
+import { languageNames, listFmt } from '../config.ts'
 import type { TextContents } from '~/textContents.ts'
 import '../polyfills.ts'
 
@@ -83,7 +83,8 @@ function jsonOrHtml(fn: (req: Request) => Response | Promise<Response>) {
 
 				const l = Object.keys(locales).map((x) => {
 					return {
-						locale: x,
+						value: x,
+						name: `${languageNames.of(x)} (${x})`,
 						selected: form.locale === x,
 					}
 				})

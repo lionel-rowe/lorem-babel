@@ -6,7 +6,7 @@
 			Locale
 			<select name="locale">
 				{{#locales}}
-					<option {{#selected}}selected{{/selected}}>{{locale}}</option>
+					<option value={{value}} {{#selected}}selected{{/selected}}>{{name}}</option>
 				{{/locales}}
 			</select>
 		</label>

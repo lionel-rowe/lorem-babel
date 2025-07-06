@@ -170,11 +170,17 @@ a {
 	}
 }
 
-form.generate-form {
+.generate-form {
 	display: flex;
 	flex-direction: row;
 	flex-wrap: wrap;
 	gap: 0.5rem;
+	padding-block-end: 0.5rem;
+
+	& > label {
+		display: inline-flex;
+		gap: 0.3rem;
+	}
 }
 
 input:is([pattern*='\\d\+'], [type='number']) {

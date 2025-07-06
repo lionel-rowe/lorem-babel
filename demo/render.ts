@@ -1,4 +1,4 @@
-import { SITE_TITLE } from './config.ts'
+import { BASE_URL, SITE_TITLE } from './config.ts'
 // @ts-types="@types/mustache"
 import Mustache from 'mustache'
 import { toSentenceCase } from '@std/text/unstable-to-sentence-case'
@@ -45,8 +45,5 @@ export async function populateLayout(
 }
 
 export async function populateReadme(props: { baseUrl: string }) {
-	return populateTemplate(await Deno.readTextFile(templateUrl), {}).replaceAll(
-		/\bhttps:\/\/lorem-babel\.deno\.dev\b(\/)?/g,
-		`${props.baseUrl}$1`,
-	)
+	return populateTemplate(await Deno.readTextFile(templateUrl), {}).replaceAll(BASE_URL, `${props.baseUrl}/`)
 }
