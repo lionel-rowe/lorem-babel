@@ -3,7 +3,7 @@ import { unreachable } from '@std/assert/unreachable'
 import { sample } from '@std/random/sample'
 import { randomIntegerBetween } from '@std/random/integer-between'
 import { FakeSentenceSegmenter } from './fakeSentenceSegmenter.ts'
-import { Heading, Paragraph, TextContents } from './textContents.ts'
+import { TextContents } from './textContents.ts'
 import { toTitleCase } from '@std/text/unstable-to-title-case'
 
 // perf: only attempt to segment sentences every N tokens
@@ -47,7 +47,7 @@ function getLengthBoundaries(boundaries: number | LengthBoundaries): LengthBound
 	return out
 }
 
-type GenerateOptions = {
+export type GenerateOptions = {
 	/**
 	 * Sentences per paragraph.
 	 * @default {{ min: 3, max: 5 }}
@@ -219,15 +219,15 @@ export class LoremBabel {
 			const addHeading = [0, 1].includes(headingDensity)
 				? Boolean(headingDensity)
 				: (this.random() < headingDensity)
-			if (addHeading) text.push(Heading.from([this.heading(opts.targetWordsPerHeading)]))
+			if (addHeading) text.push({ kind: 'heading', text: this.heading(opts.targetWordsPerHeading) })
 
 			const { min, max } = getLengthBoundaries(opts.sentences)
 			const length = randomIntegerBetween(min, max, { prng: this.random })
 			const sentences = opts.targetWordsPerSentence == null
-				? this.#sentences().take(length)
+				? this.#sentences().take(length).toArray()
 				: Array.from({ length }, () => this.sentence(opts.targetWordsPerSentence))
 
-			text.push(Paragraph.from(sentences, (x, i) => i === length - 1 ? x.trimEnd() : x))
+			text.push({ kind: 'paragraph', sentences: sentences.map((x, i) => i === length - 1 ? x.trimEnd() : x) })
 		}
 
 		return text

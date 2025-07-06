@@ -1,7 +1,6 @@
 import { LoremBabel } from './mod.ts'
-import { assertEquals, assertInstanceOf, assertMatch, assertThrows } from '@std/assert'
+import { assert, assertEquals, assertMatch, assertThrows } from '@std/assert'
 import { locales } from './locales.ts'
-import { Paragraph, TextContents } from './textContents.ts'
 
 Deno.test(LoremBabel.name, async (t) => {
 	await t.step('throws if input is empty', () => {
@@ -31,9 +30,10 @@ Deno.test(LoremBabel.name, async (t) => {
 			sentences: { min: 3, max: 3 },
 		})
 
+		assert(text[0].kind === 'paragraph')
 		// @ts-expect-error Type 'number' is not assignable to type 'string'.
-		text[0][0] = 1
-		text[0][0] = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. '
+		text[0].sentences[0] = 1
+		text[0].sentences[0] = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. '
 
 		assertMatch(
 			text.toString(),
@@ -52,9 +52,8 @@ Deno.test(LoremBabel.name, async (t) => {
 			sentences: 1,
 		})
 
-		assertInstanceOf(text, TextContents)
 		assertEquals(text.length, 1)
-		assertInstanceOf(text[0], Paragraph)
-		assertEquals(text[0].length, 1)
+		assert(text[0].kind === 'paragraph')
+		assertEquals(text[0].sentences.length, 1)
 	})
 })
