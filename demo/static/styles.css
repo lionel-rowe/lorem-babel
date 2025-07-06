@@ -1,0 +1,217 @@
+* {
+	box-sizing: border-box;
+}
+
+:root {
+	color-scheme: light dark;
+	font-family:
+		-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans',
+		'Helvetica Neue', sans-serif;
+	tab-size: 4;
+	overflow-wrap: break-word;
+	--background: white;
+	background: var(--background);
+
+	@media (prefers-color-scheme: dark) {
+		--background: #121212;
+	}
+}
+
+h2, h3, h4, h5, h6 {
+	font-weight: 500;
+}
+
+pre {
+	white-space: pre-wrap;
+	background: var(--background);
+	padding: 0.6rem 1rem;
+	border-radius: 0.5rem;
+	--shadow-color: #0003;
+	filter: drop-shadow(2px 4px 6px var(--shadow-color));
+
+	@media (prefers-color-scheme: dark) {
+		--shadow-color: #000f;
+	}
+}
+
+a {
+	/* --color: LinkText; */
+	/* https://issuetracker.google.com/issues/40772439 `LinkText` is broken in Chrome :( */
+	--color: #9e9eff;
+	color: var(--color);
+
+	&:hover {
+		color: hsl(from var(--color, currentColor) h calc(s * 2) calc(l * 0.5));
+
+		@media (prefers-color-scheme: dark) {
+			color: hsl(from var(--color, currentColor) h s calc(l * 1.1));
+		}
+	}
+}
+
+.container {
+	max-width: 100ch;
+	margin: 0 auto;
+	margin-block: 2rem;
+	padding-inline: 0.3rem;
+}
+
+.breadcrumbs {
+	list-style-type: none;
+	padding-inline-start: 0;
+	display: flex;
+	gap: 0.5em;
+	font-size: 0.9rem;
+	color: color-mix(in srgb, currentColor, transparent 30%);
+
+	.breadcrumb-delimiter {
+		opacity: 0.6;
+	}
+}
+
+.markdown-alert {
+	margin-block: 0.6em;
+	border-inline-start: 0.25em solid var(--alert-color);
+	padding: 0.3em 1em;
+	background: color-mix(in srgb, var(--alert-color), transparent 90%);
+
+	--note: dodgerblue;
+	--tip: forestgreen;
+	--important: rebeccapurple;
+	--warning: darkorange;
+	--caution: crimson;
+
+	&.markdown-alert-note {
+		--alert-color: var(--note);
+	}
+	&.markdown-alert-tip {
+		--alert-color: var(--tip);
+	}
+	&.markdown-alert-important {
+		--alert-color: var(--important);
+	}
+	&.markdown-alert-warning {
+		--alert-color: var(--warning);
+	}
+	&.markdown-alert-caution {
+		--alert-color: var(--caution);
+	}
+
+	.octicon {
+		fill: currentColor;
+	}
+	> :first-child {
+		margin-block-start: 0;
+	}
+	> :last-child {
+		margin-block-end: 0;
+	}
+	.markdown-alert-title {
+		display: flex;
+		align-items: center;
+		gap: 0.5em;
+		font-weight: bold;
+		color: var(--alert-color);
+		margin: 0;
+	}
+	p:not([class]) {
+		margin-block-start: 0.3rem;
+		font-size: 0.9rem;
+	}
+}
+
+.hl {
+	--string: firebrick;
+	--number: dodgerblue;
+	--string-property: darkgoldenrod;
+	--punctuation: lightslategray;
+	--operator: var(--punctuation);
+	--function: seagreen;
+	--keyword: rebeccapurple;
+
+	@media (prefers-color-scheme: dark) {
+		--string: tomato;
+		--number: deepskyblue;
+		--string-property: goldenrod;
+		--punctuation: slategray;
+		--function: greenyellow;
+		--keyword: plum;
+	}
+
+	.token {
+		&.string {
+			color: var(--string);
+		}
+		&.number {
+			color: var(--number);
+		}
+		&.string-property {
+			color: var(--string-property);
+		}
+		&.punctuation {
+			color: var(--punctuation);
+		}
+		&.operator {
+			color: var(--operator);
+		}
+		&.function {
+			color: var(--function);
+		}
+		&.keyword {
+			color: var(--keyword);
+		}
+		&.comment {
+			color: var(--punctuation);
+		}
+
+		a {
+			--color: inherit;
+		}
+	}
+}
+
+form.generate-form {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+}
+
+input:is([pattern*='\\d\+'], [type='number']) {
+	width: 3rem;
+}
+
+.lorem-text {
+	font-size: 0.8rem;
+}
+
+button {
+	border: none;
+	border-radius: 0.15rem;
+	padding: 0.2rem 0.6rem;
+	cursor: pointer;
+}
+
+button {
+	background: var(--color);
+	--color: #ccc;
+	@media (prefers-color-scheme: dark) {
+		--color: #666;
+	}
+
+	&:hover {
+		background: hsl(from var(--color, currentColor) h s calc(l * 1.2));
+
+		@media (prefers-color-scheme: dark) {
+			background: hsl(from var(--color, currentColor) h calc(s * 2) calc(l * 0.65));
+		}
+	}
+}
+
+button[type='submit'] {
+	--color: greenyellow;
+
+	@media (prefers-color-scheme: dark) {
+		--color: forestgreen;
+	}
+}

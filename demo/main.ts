@@ -1,76 +1,36 @@
-import { defaultGenerateOptions } from '../src/mod.ts'
-import { locales } from '../src/locales.ts'
+import { STATUS_CODE } from '@std/http/status'
+import { normalize } from '@std/path'
+import { generate } from './routes/generate.ts'
+import { home } from './routes/home.ts'
+import { serveDir } from '@std/http/file-server'
+import { err } from './routes/err.ts'
 
-function fmtRange(range: number | { min: number; max: number } | null) {
-	if (range == null) return null
-
-	const { min, max } = typeof range === 'number' ? { min: range, max: range } : range
-	return `${min}-${max}`
-}
-
-function parseRange(range: string | null) {
-	if (range == null) return null
-
-	const x = range.split('-').map(Number)
-	if (x.length > 2 || x.length < 1) {
-		throw new Error(`Invalid range format: ${range}`)
-	}
-	let [min, max] = x
-	if (max == null) max = min
-
-	if (isNaN(min) || isNaN(max) || min > max) {
-		throw new Error(`Invalid range: ${range}`)
-	}
-
-	return { min, max }
-}
-
-Deno.serve(async (req) => {
+Deno.serve((req) => {
 	const url = new URL(req.url)
-	if (req.method !== 'GET') {
-		return new Response('Method Not Allowed', { status: 405 })
-	}
-	if (url.pathname !== '/') {
-		return new Response('Not Found', { status: 404 })
+	const pathname = normalizePathname(url.pathname)
+	if (pathname !== url.pathname) {
+		return Response.redirect(Object.assign(url, { pathname }), STATUS_CODE.PermanentRedirect)
 	}
 
-	const params = url.searchParams
-
-	const locale = params.get('locale') ?? 'en'
-
-	// const words = params.get('words') ?? fmtRange(defaultGenerateOptions.wordsPerSentence)
-	const sentences = params.get('sentences') ?? fmtRange(defaultGenerateOptions.sentences)
-	const paragraphs = params.get('paragraphs') ?? fmtRange(defaultGenerateOptions.paragraphs)
-	const headingDensity = Number(params.get('headings') ?? defaultGenerateOptions.headingDensity)
-	const targetWordsPerSentence = params.get('per-sentence') ?? fmtRange(defaultGenerateOptions.targetWordsPerSentence)
-	const targetWordsPerHeading = params.get('per-heading') ?? fmtRange(defaultGenerateOptions.targetWordsPerHeading)
-
-	const lorem = Object.hasOwn(locales, locale) ? (await locales[locale as keyof typeof locales]()) : null
-	if (!lorem) {
-		return new Response(
-			`Locale "${locale}" not found. Available locales: ${Object.keys(locales).map((x) => `"${x}"`).join(', ')}`,
-			{ status: 404 },
-		)
+	switch (url.pathname) {
+		case '/':
+			return req.method === 'GET' ? home(req) : err(STATUS_CODE.MethodNotAllowed)
+		case '/generate':
+			return req.method === 'GET' ? generate(req) : err(STATUS_CODE.MethodNotAllowed)
+		default: {
+			if (pathname.startsWith('/static/')) {
+				return serveDir(req, {
+					fsRoot: 'demo/static',
+					urlRoot: 'static',
+					showIndex: false,
+				})
+			}
+			return err(STATUS_CODE.NotFound)
+		}
 	}
-
-	const generateConfig = {
-		sentences: parseRange(sentences)!,
-		paragraphs: parseRange(paragraphs)!,
-		headingDensity,
-		targetWordsPerSentence: parseRange(targetWordsPerSentence),
-		targetWordsPerHeading: parseRange(targetWordsPerHeading),
-	}
-
-	// const lorem = new LoremBabel(lorem)
-	const text = lorem.text(generateConfig)
-
-	// plaintext response
-	return new Response(
-		text.toString(),
-		{
-			headers: {
-				'content-type': 'text/plain; charset=utf-8',
-			},
-		},
-	)
 })
+
+function normalizePathname(pathname: string) {
+	pathname = normalize(pathname || '/')
+	return /.\/$/.test(pathname) ? pathname.slice(0, -1) : pathname
+}
