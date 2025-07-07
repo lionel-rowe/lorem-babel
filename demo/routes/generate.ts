@@ -21,7 +21,7 @@ export const generate = jsonOrHtml(async (req: Request): Promise<Response> => {
 	const url = new URL(req.url)
 	const { searchParams } = url
 
-	const locale = searchParams.get('locale') ?? 'en'
+	const locale = searchParams.get('locale') ?? formDefaults.locale
 
 	const params: Partial<GenerateOptions> = {
 		sentences: parseRange(searchParams.get('sentences')) ?? defaultFormOptions.sentences,
@@ -44,7 +44,7 @@ export const generate = jsonOrHtml(async (req: Request): Promise<Response> => {
 })
 
 const formDefaults = {
-	locale: 'en',
+	locale: 'vi',
 	sentences: fmtRange(defaultFormOptions.sentences),
 	paragraphs: fmtRange(defaultFormOptions.paragraphs),
 	headings: String(defaultFormOptions.headingDensity),

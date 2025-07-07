@@ -1,7 +1,7 @@
 {
 	"lock": false,
 	"name": "@li/lorem-babel",
-	"version": "0.4.0",
+	"version": "0.4.1",
 	"exports": {
 		".": "./src/mod.ts",
 		"./locales": "./src/locales.ts",
@@ -20,6 +20,7 @@
 		"./locales/fr": "./src/locales/fr.json",
 		"./locales/got": "./src/locales/got.json",
 		"./locales/he": "./src/locales/he.json",
+		"./locales/hi": "./src/locales/hi.json",
 		"./locales/hu": "./src/locales/hu.json",
 		"./locales/id": "./src/locales/id.json",
 		"./locales/it": "./src/locales/it.json",
@@ -27,6 +28,7 @@
 		"./locales/ko": "./src/locales/ko.json",
 		"./locales/lorem": "./src/locales/lorem.json",
 		"./locales/lv": "./src/locales/lv.json",
+		"./locales/my": "./src/locales/my.json",
 		"./locales/nb": "./src/locales/nb.json",
 		"./locales/nl": "./src/locales/nl.json",
 		"./locales/osa": "./src/locales/osa.json",

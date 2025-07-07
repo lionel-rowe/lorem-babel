@@ -3,7 +3,7 @@ import { LoremBabel, type LoremBabelConfig } from './lorem.ts'
 
 /** All available locales */
 // deno-fmt-ignore
-export type Locale = 'ar' | 'bg' | 'cs' | 'da' | 'de' | 'el' | 'en-GB' | 'en' | 'es-419' | 'es' | 'et' | 'fi' | 'fr' | 'got' | 'he' | 'hu' | 'id' | 'it' | 'ja' | 'ko' | 'lorem' | 'lv' | 'nb' | 'nl' | 'osa' | 'pl' | 'pt-PT' | 'pt' | 'ro' | 'ru' | 'sk' | 'sl' | 'sv' | 'th' | 'tr' | 'uk' | 'vi' | 'zh-TW' | 'zh'
+export type Locale = 'ar' | 'bg' | 'cs' | 'da' | 'de' | 'el' | 'en-GB' | 'en' | 'es-419' | 'es' | 'et' | 'fi' | 'fr' | 'got' | 'he' | 'hi' | 'hu' | 'id' | 'it' | 'ja' | 'ko' | 'lorem' | 'lv' | 'my' | 'nb' | 'nl' | 'osa' | 'pl' | 'pt-PT' | 'pt' | 'ro' | 'ru' | 'sk' | 'sl' | 'sv' | 'th' | 'tr' | 'uk' | 'vi' | 'zh-TW' | 'zh'
 
 const configs: Record<Locale, () => Promise<{ default: LoremBabelConfig }>> = {
 	'ar': () => import('./locales/ar.json', { with: { type: 'json' } }),
@@ -21,6 +21,7 @@ const configs: Record<Locale, () => Promise<{ default: LoremBabelConfig }>> = {
 	'fr': () => import('./locales/fr.json', { with: { type: 'json' } }),
 	'got': () => import('./locales/got.json', { with: { type: 'json' } }),
 	'he': () => import('./locales/he.json', { with: { type: 'json' } }),
+	'hi': () => import('./locales/hi.json', { with: { type: 'json' } }),
 	'hu': () => import('./locales/hu.json', { with: { type: 'json' } }),
 	'id': () => import('./locales/id.json', { with: { type: 'json' } }),
 	'it': () => import('./locales/it.json', { with: { type: 'json' } }),
@@ -28,6 +29,7 @@ const configs: Record<Locale, () => Promise<{ default: LoremBabelConfig }>> = {
 	'ko': () => import('./locales/ko.json', { with: { type: 'json' } }),
 	'lorem': () => import('./locales/lorem.json', { with: { type: 'json' } }),
 	'lv': () => import('./locales/lv.json', { with: { type: 'json' } }),
+	'my': () => import('./locales/my.json', { with: { type: 'json' } }),
 	'nb': () => import('./locales/nb.json', { with: { type: 'json' } }),
 	'nl': () => import('./locales/nl.json', { with: { type: 'json' } }),
 	'osa': () => import('./locales/osa.json', { with: { type: 'json' } }),
