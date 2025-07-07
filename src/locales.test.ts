@@ -1,16 +1,7 @@
 import { assertEquals } from '@std/assert'
-import { getRandomValuesSeeded, nextFloat64 } from '@std/random'
 import { locales } from './locales.ts'
 import currentSnapshots from './fixtures/snapshots.json' with { type: 'json' }
-
-// random seed generated with crypto.getRandomValues(new BigUint64Array(1))[0]
-const SEED = 2115880546258684834n
-
-// prng to ensure deterministic results during testing
-function prng(seed: bigint) {
-	const getRandomValues = getRandomValuesSeeded(seed)
-	return () => nextFloat64(getRandomValues)
-}
+import { prng, SEED } from './_testUtils.ts'
 
 const UPDATE_SNAPSHOT = Boolean(Deno.env.get('UPDATE_SNAPSHOT'))
 

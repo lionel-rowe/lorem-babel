@@ -16,11 +16,11 @@ Deno.test(LoremBabel.name, async (t) => {
 	await t.step('allows single-word input', () => {
 		const lorem = new LoremBabel({
 			locale: 'en',
-			input: 'hello',
+			input: 'Hello. ',
 			contextSize: 2,
 		})
 		const words: string[] = lorem.words().take(5).toArray()
-		assertEquals(words, ['hello', 'hello', 'hello', 'hello', 'hello'])
+		assertEquals(words, ['Hello', 'Hello', 'Hello', 'Hello', 'Hello'])
 	})
 
 	await t.step('allows overriding the first sentence', async () => {
@@ -55,5 +55,17 @@ Deno.test(LoremBabel.name, async (t) => {
 		assertEquals(text.length, 1)
 		assert(text[0].kind === 'paragraph')
 		assertEquals(text[0].sentences.length, 1)
+	})
+
+	await t.step('`heading()` returns appropriately capitalized heading', () => {
+		const lorem = new LoremBabel({
+			locale: 'tr',
+			input: 'II ii.',
+			contextSize: 2,
+		})
+
+		const text = lorem.heading(1)
+
+		assertEquals(text, 'Iı İi')
 	})
 })

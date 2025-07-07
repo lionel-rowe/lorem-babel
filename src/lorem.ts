@@ -123,8 +123,20 @@ export class LoremBabel {
 		if (!original.trim()) throw new RangeError('Input must not be empty')
 
 		locale = new Intl.Locale(locale).minimize().toString()
-		this.#delimiter = '\0'
 
+		this.locale = locale
+		this.#segmenters = {
+			sentence: sentenceBreak
+				? new FakeSentenceSegmenter(80, new RegExp(sentenceBreak, 'dgv'))
+				: new Intl.Segmenter(this.locale, { granularity: 'sentence' }),
+			word: new Intl.Segmenter(this.locale, { granularity: 'word' }),
+		}
+
+		if (!this.#checkSentenceBreakable(original)) {
+			throw new RangeError('Input must contain at least 2 sentences.')
+		}
+
+		this.#delimiter = '\0'
 		while (original.includes(this.#delimiter)) {
 			this.#delimiter = String.fromCodePoint(
 				this.#delimiter.codePointAt(0)! + 1,
@@ -134,14 +146,6 @@ export class LoremBabel {
 		const input = this.#prepareInput(original, locale)
 
 		this.rules = this.#buildRules({ input, contextSize })
-
-		this.locale = locale
-		this.#segmenters = {
-			sentence: sentenceBreak
-				? new FakeSentenceSegmenter(80, new RegExp(sentenceBreak, 'dgv'))
-				: new Intl.Segmenter(this.locale, { granularity: 'sentence' }),
-			word: new Intl.Segmenter(this.locale, { granularity: 'word' }),
-		}
 	}
 
 	#buildRules({ input, contextSize }: { input: string; contextSize: number }) {
@@ -165,9 +169,18 @@ export class LoremBabel {
 		return Array.isArray(input) ? input.join('\n\n') : input
 	}
 
+	#getSentenceDelimiter(input: string): string {
+		return input.split(' ').length > input.length / 50 ? ' ' : ''
+	}
+
+	#checkSentenceBreakable(input: string): boolean {
+		return this.#segmenters.sentence.segment(input)[Symbol.iterator]().take(2).toArray().length === 2 ||
+			this.#segmenters.sentence.segment([input, input].join(this.#getSentenceDelimiter(input)))[Symbol.iterator]()
+					.take(2).toArray().length === 2
+	}
+
 	#prepareInput(input: string, locale: Intl.LocalesArgument): string {
-		const sentencesAreSpaceDelimited = input.split(' ').length > input.length / 50
-		const space = sentencesAreSpaceDelimited ? ' ' : ''
+		const space = this.#getSentenceDelimiter(input)
 
 		const s = input.replaceAll(/\n+/g, space).trim() + space
 
@@ -235,7 +248,10 @@ export class LoremBabel {
 
 	/** Generates a heading, aiming for the specified target number of words */
 	heading(targetWords?: number | LengthBoundaries | null): string {
-		return toTitleCase(this.sentence(targetWords)).trimEnd().replace(/^\p{P}+|\p{P}+$/gu, '')
+		return toTitleCase(
+			this.sentence(targetWords).trimEnd().replace(/^\p{P}+|\p{P}+$/gu, ''),
+			{ locale: this.locale },
+		)
 	}
 
 	/** Generates a sentence, aiming for the specified target number of words */
