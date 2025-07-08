@@ -26,7 +26,7 @@ export type LoremBabelConfig = {
 	 * Interpreted as RegExp source (v-mode). Only necessary for languages like
 	 * Thai that do not have an easy way to delimit sentences.
 	 */
-	sentenceBreak?: string
+	sentenceBreakCandidate?: string
 }
 
 type LengthBoundaries = {
@@ -117,7 +117,7 @@ export class LoremBabel {
 		word: Intl.Segmenter
 	}
 
-	constructor({ locale, input: original, contextSize, sentenceBreak }: LoremBabelConfig) {
+	constructor({ locale, input: original, contextSize, sentenceBreakCandidate }: LoremBabelConfig) {
 		original = this.#inputToScalar(original)
 
 		if (!original.trim()) throw new RangeError('Input must not be empty')
@@ -126,8 +126,8 @@ export class LoremBabel {
 
 		this.locale = locale
 		this.#segmenters = {
-			sentence: sentenceBreak
-				? new FakeSentenceSegmenter(80, new RegExp(sentenceBreak, 'dgv'))
+			sentence: sentenceBreakCandidate != null
+				? new FakeSentenceSegmenter(80, new RegExp(sentenceBreakCandidate, 'dgv'))
 				: new Intl.Segmenter(this.locale, { granularity: 'sentence' }),
 			word: new Intl.Segmenter(this.locale, { granularity: 'word' }),
 		}

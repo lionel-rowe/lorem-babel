@@ -64,6 +64,6 @@
 	</script>
 </form>
 
-<div class="lorem-text" dir={{dir}} translate="no">
+<div class="lorem-text {{className}}" dir={{dir}} translate="no">
 {{{loremHtml}}}
 </div>

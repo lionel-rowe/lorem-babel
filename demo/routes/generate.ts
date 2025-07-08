@@ -7,7 +7,7 @@ import { err } from './err.ts'
 import { type Locale, locales } from '~/locales.ts'
 import { escape } from '@std/html/entities'
 import { defaultGenerateOptions, type GenerateOptions } from '~/lorem.ts'
-import { languageNames, listFmt } from '../config.ts'
+import { isVerticalLr, languageNames, listFmt } from '../config.ts'
 import type { TextContents } from '~/textContents.ts'
 import '../polyfills.ts'
 
@@ -44,7 +44,7 @@ export const generate = jsonOrHtml(async (req: Request): Promise<Response> => {
 })
 
 const formDefaults = {
-	locale: 'vi',
+	locale: 'am',
 	sentences: fmtRange(defaultFormOptions.sentences),
 	paragraphs: fmtRange(defaultFormOptions.paragraphs),
 	headings: String(defaultFormOptions.headingDensity),
@@ -96,6 +96,7 @@ function jsonOrHtml(fn: (req: Request) => Response | Promise<Response>) {
 					loremHtml,
 					formDefaults: JSON.stringify(formDefaults),
 					dir: new Intl.Locale(form.locale).getTextInfo().direction,
+					className: isVerticalLr(form.locale) ? 'vertical-lr' : '',
 				})
 
 				const main = await marked.parse(content)

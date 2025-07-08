@@ -13,6 +13,7 @@ class LanguageNames extends Intl.DisplayNames {
 		lorem: 'Lorem Ipsum',
 		got: 'Gothic',
 		osa: 'Osage',
+		bo: 'Tibetan',
 	}))
 
 	override of(locale: string): string {
@@ -21,3 +22,12 @@ class LanguageNames extends Intl.DisplayNames {
 }
 
 export const languageNames = new LanguageNames(LOCALE)
+
+const VERTICAL_LR_SCRIPTS = ['Mong'] as const
+export function isVerticalLr(locale: string) {
+	try {
+		return (VERTICAL_LR_SCRIPTS as readonly string[]).includes(new Intl.Locale(locale).maximize().script ?? '')
+	} catch {
+		return false
+	}
+}
