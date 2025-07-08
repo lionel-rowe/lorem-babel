@@ -53,7 +53,7 @@ const targetLocale = url.searchParams.get('tl') ?? (() => {
 if (done.has(targetLocale)) {
 	throw new Error(`Target locale ${targetLocale} has already been translated.`)
 } else {
-	console.log(`Translating ${targetLocale}...`)
+	console.info(`Translating ${targetLocale}...`)
 }
 
 function getOutputEls() {
@@ -173,15 +173,15 @@ const remaining = [...new Set([...document.querySelectorAll(selector)].map((x) =
 	.sort((a, b) => a.localeCompare(b, 'und'))
 	.filter((x) => !done.has(x))
 
-console.log(`Done translating ${targetLocale}. Remaining languages: ${remaining.length}`)
+console.info(`Done translating ${targetLocale}. Remaining languages: ${remaining.length}`)
 await sleep(3000)
 
 if (remaining.length === 0) {
-	console.log('All languages translated. Exiting script.')
+	console.info('All languages translated. Exiting script.')
 } else {
 	const [next] = remaining
 	url.searchParams.set('tl', next)
-	console.log(`Next language: ${next}. Reloading page...`)
+	console.info(`Next language: ${next}. Reloading page...`)
 	await sleep(3000)
 	location.href = url.href
 }

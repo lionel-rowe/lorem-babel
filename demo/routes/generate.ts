@@ -84,7 +84,7 @@ function jsonOrHtml(fn: (req: Request) => Response | Promise<Response>) {
 				const l = Object.keys(locales).map((x) => {
 					return {
 						value: x,
-						name: `${languageNames.of(x)} (${x})`,
+						name: languageNames.of(x),
 						selected: form.locale === x,
 					}
 				})
