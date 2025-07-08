@@ -1,12 +1,14 @@
-import { regExpEscape } from '@li/regexp-escape-polyfill'
+// @ts-check
 
-// https://www.omniglot.com/writing/osage.htm
+/** Transliteration from https://www.omniglot.com/writing/osage.htm */
 const latn =
 	`Iciko tąka wį aðe apa—kaxa kši aðe apa, opxa. wec’a wį iðape. wac’a akxa “Kotaha maðį,” akxa. Iciko tąka apa, “ðie ðie kotaha maðį winąsta tə̨ mįkše,” Iciko tąka aoa ekie apa. wec’a apa, “Ąðanąsta aha wibraɣtake tə̨ mikše.” Iciko tąka apa, “Ąðaɣtake etą apa tą nąstape.” wanąstape aha ðe, wec’a apa ðaɣtakape siðece. ðaɣtakape aha, Iciko tąka apa aðape tą, žą į eci ce eci siðįkape. Lį akɣa tą, si ce broka ipa akɣa. Iciko tąka akɣa, “Oo ąšį wali mįkše!” akɣa. Lį šǫ akɣa c’e hįkše apa tą c’ape iciko tąka apa. Broka žuika broka ipape tą c’ape.`
-		.replaceAll(/[“”]/g, '')
 
-// https://en.wikipedia.org/wiki/Osage_script
-const mapping: Record<string, string[]> = {
+/**
+ * Mapping from https://en.wikipedia.org/wiki/Osage_script
+ * @type Record<string, string[]>
+ */
+const mapping = {
 	'𐒰': ['A'],
 	'𐒱': ['Ai'],
 	'𐒳': ['Ə'],
@@ -57,22 +59,23 @@ const mapping: Record<string, string[]> = {
 	'𐓋': ['Hc'],
 }
 
-const reverseMapping: Record<string, string> = Object.fromEntries(
+/** @type Record<string, string> */
+const reverseMapping = Object.fromEntries(
 	Object.entries(mapping).flatMap(([k, v]) => v.map((x) => [x.toLowerCase(), k.toLowerCase()])),
 )
 
 const regex = new RegExp(
-	`(${Object.keys(reverseMapping).sort((a, b) => b.length - a.length).map((x) => `(${regExpEscape(x)})`).join('|')})`,
+	`(${
+		Object.keys(reverseMapping).sort((a, b) => b.length - a.length).map((x) => `(${RegExp.escape(x)})`).join('|')
+	})`,
 	'gi',
 )
 
 const out = latn.replaceAll(regex, (match, ...args) => {
 	const index = args.findIndex((x) => x != null)
-
 	if (index === -1) return match // No match found, return original
 
 	const isUpper = match[0] === match[0].toUpperCase() // Check if the match is uppercase
-
 	const char = reverseMapping[args[index].toLowerCase()] ?? match
 
 	return isUpper ? char.toUpperCase() : char.toLowerCase()
@@ -81,7 +84,9 @@ const out = latn.replaceAll(regex, (match, ...args) => {
 const unconverted = out.match(/\p{scx=Latn}/gu)
 
 if (unconverted) {
-	throw new Error(`Unconverted characters found: ${unconverted.join(', ')}`)
+	console.error(`⚠️ Unconverted Latin-alphabet characters found: ${unconverted.join(', ')}`)
+} else {
+	console.info('🎉 All Latin-alphabet characters converted!')
 }
 
-console.info(out)
+console.info(`=== Result ===\n${out}`)
