@@ -2,6 +2,7 @@ import { assertEquals } from '@std/assert'
 import { locales } from './locales.ts'
 import currentSnapshots from './fixtures/snapshots.json' with { type: 'json' }
 import { prng, SEED } from './_testUtils.ts'
+import type { GenerateOptions } from './lorem.ts'
 
 const UPDATE_SNAPSHOT = Boolean(Deno.env.get('UPDATE_SNAPSHOT'))
 
@@ -14,13 +15,12 @@ const snapshots: Snapshots = Deno.env.get('UPDATE_SNAPSHOT') ? blankTests : curr
 Deno.test('snapshots', async (t) => {
 	for (const [locale, getLorem] of Object.entries(locales)) {
 		const lorem = await getLorem()
+		lorem.random = prng(SEED)
 
 		await t.step(locale, () => {
-			lorem.random = prng(SEED)
-
-			const options = {
+			const options: Partial<GenerateOptions> = {
 				paragraphs: { min: 3, max: 5 },
-				sentences: { min: 3, max: 6 },
+				sentencesPerParagraph: { min: 3, max: 6 },
 			}
 
 			const actual = lorem.text(options)
