@@ -6,10 +6,10 @@ import { FakeSentenceSegmenter } from './fakeSentenceSegmenter.ts'
 import { TextContents } from './textContents.ts'
 import { toTitleCase } from '@std/text/unstable-to-title-case'
 
-// perf: only attempt to segment sentences every N tokens
-const CHECK_EVERY_N_TOKENS = 100
-// perf: only attempt to generate a sentence with target length 10 times
-const MAX_ATTEMPTS = 10
+/** perf: only attempt to segment sentences every N tokens */
+const CHECK_SENTENCE_SEGMENTS_EVERY_N_TOKENS = 100
+/** perf: only attempt to generate a sentence with target length N times */
+const MAX_TARGET_WORD_ATTEMPTS = 10
 
 /** Config for {@linkcode LoremBabel} */
 export type LoremBabelConfig = {
@@ -24,7 +24,7 @@ export type LoremBabelConfig = {
 	input: string | string[]
 	/**
 	 * Interpreted as RegExp source (v-mode). Only necessary for languages like
-	 * Thai that do not have an easy way to delimit sentences.
+	 * Thai that do not have a straightforward way to delimit sentences.
 	 */
 	sentenceBreakCandidate?: string
 }
@@ -49,15 +49,18 @@ function getLengthBoundaries(boundaries: number | LengthBoundaries): LengthBound
 
 export type GenerateOptions = {
 	/**
-	 * Sentences per paragraph.
-	 * @default {{ min: 3, max: 5 }}
-	 */
-	sentences: number | LengthBoundaries
-	/**
 	 * Total number of paragraphs to output.
 	 * @default {{ min: 3, max: 5 }}
 	 */
 	paragraphs: number | LengthBoundaries
+	/**
+	 * Sentences per paragraph.
+	 * > [!NOTE]
+	 * > For a few languages, such as Thai, this number is approximate, as sentences can't be straightforwardly
+	 * > delimited in those languages (sometimes a space indicates a sentence break, but not always).
+	 * @default {{ min: 3, max: 5 }}
+	 */
+	sentencesPerParagraph: number | LengthBoundaries
 	/**
 	 * Density of headings in the text, as a fraction of the number of paragraphs.
 	 * A value of 0 means no headings, a value of 1 means one heading per paragraph.
@@ -80,7 +83,7 @@ export type GenerateOptions = {
 
 /** Default text generation options */
 export const defaultGenerateOptions: GenerateOptions = {
-	sentences: { min: 3, max: 5 },
+	sentencesPerParagraph: { min: 3, max: 5 },
 	paragraphs: { min: 3, max: 5 },
 	headingDensity: 0,
 	targetWordsPerSentence: null,
@@ -207,8 +210,8 @@ export class LoremBabel {
 	 *
 	 * const lorem = new LoremBabel(config)
 	 * const text = lorem.text({
-	 * 	sentences: { min: 2, max: 3 },
 	 * 	paragraphs: { min: 3, max: 3 },
+	 * 	sentencesPerParagraph: { min: 2, max: 3 },
 	 * })
 	 * // TextContents(3) [ ... ]
 	 * text.toString()
@@ -234,7 +237,7 @@ export class LoremBabel {
 				: (this.random() < headingDensity)
 			if (addHeading) text.push({ kind: 'heading', text: this.heading(opts.targetWordsPerHeading) })
 
-			const { min, max } = getLengthBoundaries(opts.sentences)
+			const { min, max } = getLengthBoundaries(opts.sentencesPerParagraph)
 			const length = randomIntegerBetween(min, max, { prng: this.random })
 			const sentences = opts.targetWordsPerSentence == null
 				? this.#sentences().take(length).toArray()
@@ -269,7 +272,7 @@ export class LoremBabel {
 
 		let bestAttempt = { text: '', distance: Infinity }
 
-		for (let i = 0; i < MAX_ATTEMPTS; ++i) {
+		for (let i = 0; i < MAX_TARGET_WORD_ATTEMPTS; ++i) {
 			const text = iter.next().value
 
 			const count = this.#countWords(text)
@@ -329,7 +332,7 @@ export class LoremBabel {
 		let buf = ''
 
 		for (const token of this.#tokens()) {
-			i = (i + 1) % CHECK_EVERY_N_TOKENS
+			i = (i + 1) % CHECK_SENTENCE_SEGMENTS_EVERY_N_TOKENS
 			buf += token
 
 			if (i !== 0) continue

@@ -17,14 +17,14 @@ const defaultFormOptions: GenerateOptions = {
 	headingDensity: 0.5,
 }
 
-export const generate = jsonOrHtml(async (req: Request): Promise<Response> => {
+export const playground = jsonOrHtml(async (req: Request): Promise<Response> => {
 	const url = new URL(req.url)
 	const { searchParams } = url
 
 	const locale = searchParams.get('locale') ?? formDefaults.locale
 
 	const params: Partial<GenerateOptions> = {
-		sentences: parseRange(searchParams.get('sentences')) ?? defaultFormOptions.sentences,
+		sentencesPerParagraph: parseRange(searchParams.get('sentences')) ?? defaultFormOptions.sentencesPerParagraph,
 		paragraphs: parseRange(searchParams.get('paragraphs')) ?? defaultFormOptions.paragraphs,
 		headingDensity: parseFloat(searchParams.get('headings') ?? String(defaultFormOptions.headingDensity)),
 		targetWordsPerSentence: parseRange(searchParams.get('per-sentence')) ??
@@ -45,7 +45,7 @@ export const generate = jsonOrHtml(async (req: Request): Promise<Response> => {
 
 const formDefaults = {
 	locale: 'am',
-	sentences: fmtRange(defaultFormOptions.sentences),
+	sentences: fmtRange(defaultFormOptions.sentencesPerParagraph),
 	paragraphs: fmtRange(defaultFormOptions.paragraphs),
 	headings: String(defaultFormOptions.headingDensity),
 	perSentence: fmtRange(defaultFormOptions.targetWordsPerSentence),
@@ -89,7 +89,7 @@ function jsonOrHtml(fn: (req: Request) => Response | Promise<Response>) {
 					}
 				})
 
-				const content = populateTemplate(await Deno.readTextFile('./demo/routes/generate.md'), {
+				const content = populateTemplate(await Deno.readTextFile('./demo/routes/playground.md'), {
 					results: JSON.stringify(results, null, '\t'),
 					locales: l,
 					form,
@@ -100,7 +100,7 @@ function jsonOrHtml(fn: (req: Request) => Response | Promise<Response>) {
 				})
 
 				const main = await marked.parse(content)
-				const html = await populateLayout(req, { title: 'Generate', main })
+				const html = await populateLayout(req, { title: 'Playground', main })
 
 				return new Response(html, {
 					headers: {

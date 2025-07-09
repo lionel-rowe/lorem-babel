@@ -230,3 +230,26 @@ button[type='submit'] {
 	max-height: var(--reading-width);
 	max-width: unset;
 }
+
+.locales-list-label {
+	position: relative;
+	font-size: 0.8rem;
+
+	& input {
+		font-size: 1em;
+		width: 230px;
+
+		&:not(.focused) {
+			color: transparent;
+		}
+	}
+
+	&:not(:has(.focused)) {
+		&::after {
+			position: absolute;
+			left: 0.3rem;
+			content: attr(data-selected-name);
+			pointer-events: none;
+		}
+	}
+}

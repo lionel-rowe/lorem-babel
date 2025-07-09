@@ -27,7 +27,7 @@ Deno.test(LoremBabel.name, async (t) => {
 		const lorem = await locales.lorem()
 		const text = lorem.text({
 			paragraphs: { min: 1, max: 1 },
-			sentences: { min: 3, max: 3 },
+			sentencesPerParagraph: { min: 3, max: 3 },
 		})
 
 		assert(text[0].kind === 'paragraph')
@@ -49,7 +49,7 @@ Deno.test(LoremBabel.name, async (t) => {
 		})
 		const text = lorem.text({
 			paragraphs: 1,
-			sentences: 1,
+			sentencesPerParagraph: 1,
 		})
 
 		assertEquals(text.length, 1)

@@ -2,7 +2,7 @@
 
 Generate nonsense placeholder text in a variety of languages.
 
-**[Explore in Playground](https://lorem-babel.deno.dev/generate)**
+**[Explore in Playground](https://lorem-babel.deno.dev/playground)**
 
 ## Usage
 

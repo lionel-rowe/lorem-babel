@@ -1,6 +1,6 @@
 import { STATUS_CODE } from '@std/http/status'
 import { normalize } from '@std/path'
-import { generate } from './routes/generate.ts'
+import { playground } from './routes/playground.ts'
 import { home } from './routes/home.ts'
 import { serveDir } from '@std/http/file-server'
 import { err } from './routes/err.ts'
@@ -15,8 +15,8 @@ Deno.serve((req) => {
 	switch (url.pathname) {
 		case '/':
 			return req.method === 'GET' ? home(req) : err(STATUS_CODE.MethodNotAllowed)
-		case '/generate':
-			return req.method === 'GET' ? generate(req) : err(STATUS_CODE.MethodNotAllowed)
+		case '/playground':
+			return req.method === 'GET' ? playground(req) : err(STATUS_CODE.MethodNotAllowed)
 		default: {
 			if (pathname.startsWith('/static/')) {
 				return serveDir(req, {
