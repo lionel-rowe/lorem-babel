@@ -111,6 +111,7 @@ export const defaultGenerateOptions: GenerateOptions = {
 export class LoremBabel {
 	random = Math.random
 	readonly #delimiter: string
+	readonly #sentenceDelimiter: string
 
 	readonly locale: string
 
@@ -134,6 +135,8 @@ export class LoremBabel {
 				: new Intl.Segmenter(this.locale, { granularity: 'sentence' }),
 			word: new Intl.Segmenter(this.locale, { granularity: 'word' }),
 		}
+
+		this.#sentenceDelimiter = this.#getSentenceDelimiter(original)
 
 		if (!this.#checkSentenceBreakable(original)) {
 			throw new RangeError('Input must contain at least 2 sentences.')
@@ -178,13 +181,12 @@ export class LoremBabel {
 
 	#checkSentenceBreakable(input: string): boolean {
 		return this.#segmenters.sentence.segment(input)[Symbol.iterator]().take(2).toArray().length === 2 ||
-			this.#segmenters.sentence.segment([input, input].join(this.#getSentenceDelimiter(input)))[Symbol.iterator]()
+			this.#segmenters.sentence.segment([input, input].join(this.#sentenceDelimiter))[Symbol.iterator]()
 					.take(2).toArray().length === 2
 	}
 
 	#prepareInput(input: string, locale: Intl.LocalesArgument): string {
-		const space = this.#getSentenceDelimiter(input)
-
+		const space = this.#sentenceDelimiter
 		const s = input.replaceAll(/\n+/g, space).trim() + space
 
 		let out = ''

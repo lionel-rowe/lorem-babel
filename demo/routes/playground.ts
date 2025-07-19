@@ -147,10 +147,11 @@ function parseRange(range: string | null) {
 
 function loremToHtml(text: TextContents) {
 	return text.map((x) => {
-		if (x.kind === 'paragraph') {
-			return `<p>${escape(x.sentences.join(' '))}</p>`
-		} else if (x.kind === 'heading') {
-			return `<h2>${escape(x.text)}</h2>`
+		switch (x.kind) {
+			case 'heading':
+				return `<h2>${escape(x.text)}</h2>`
+			case 'paragraph':
+				return `<p>${escape(x.sentences.join(''))}</p>`
 		}
 	}).join('\n')
 }
